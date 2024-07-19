@@ -1,1 +1,4 @@
 name: pasanaku
+
+plugins:
+  - name: vyper

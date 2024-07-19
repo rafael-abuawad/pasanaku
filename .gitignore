@@ -2,6 +2,9 @@
 .build/
 .cache/
 
+# Ruff
+.ruff_cache/
+
 # Python
 .env
 .venv
