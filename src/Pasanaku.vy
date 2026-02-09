@@ -66,6 +66,7 @@ event Deposited:
 
 
 MAX_PLAYER_COUNT: constant(uint256) = 12
+DAYS_30: constant(uint256) = 30 * 24 * 60 * 60
 
 
 struct RotatingSavings:
@@ -76,6 +77,7 @@ struct RotatingSavings:
     current_player_index: uint256
     creator: address
     total_deposited: uint256
+    ended: bool
     created_at: uint256
     last_updated_at: uint256
 
@@ -129,6 +131,7 @@ def create(
         current_player_index=0,
         creator=msg.sender,
         total_deposited=0,
+        ended=False,
         created_at=block.timestamp,
         last_updated_at=block.timestamp,
     )
@@ -147,14 +150,15 @@ def create(
 
 @external
 def deposit(token_id: uint256, amount: uint256) -> bool:
-    assert erc1155.total_supply[token_id] != empty(
-        uint256
-    )  # dev: token does not exist
+    assert erc1155.total_supply[token_id] != empty(uint256)  # dev: token does not exist
     assert amount > 0  # dev: amount is zero
 
     rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    assert not rs.ended, "Pasanaku: rotating savings has ended"
     assert rs.amount == amount, "Pasanaku: amount mismatch"
     assert msg.sender in rs.players, "Pasanaku: not a player"
+    assert rs.players[rs.current_player_index] != msg.sender, "Pasanaku: current player"
+
     assert not self.deposited[msg.sender][token_id][
         rs.current_player_index
     ], "Pasanaku: already deposited"
@@ -175,6 +179,7 @@ def deposit(token_id: uint256, amount: uint256) -> bool:
         total_deposited=total_deposited,
     )
 
+
     # TODO: Transfer the amount to FLuid to generate yield
     extcall IERC20(rs.asset).transferFrom(msg.sender, self, amount)
 
@@ -184,14 +189,39 @@ def deposit(token_id: uint256, amount: uint256) -> bool:
 @external
 def claim(token_id: uint256) -> bool:
     rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
-    expected_total_deposited: uint256 = rs.amount * (len(rs.players) - 1)
-    assert (
-        rs.total_deposited >= expected_total_deposited
-    ), "Pasanaku: total deposited mismatch"
+    assert not rs.ended, "Pasanaku: rotating savings has ended"
 
+    expected_total_deposited: uint256 = rs.amount * (len(rs.players) - 1)
+    assert rs.total_deposited >= expected_total_deposited, "Pasanaku: total deposited mismatch"
+
+    rs.current_player_index += 1
+    if rs.current_player_index == len(rs.players):
+        rs.ended = True
+    rs.last_updated_at = block.timestamp
+
+    self.token_id_to_rotating_savings[token_id] = rs
 
     # TODO: Claim the yield, and transfer the amount to the player, minus the fees
     extcall IERC20(rs.asset).transfer(msg.sender, rs.total_deposited)
+
+    return True
+
+
+@external
+def recover(token_id: uint256) -> bool:
+    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    assert (
+        rs.last_updated_at + DAYS_30 < block.timestamp
+    ), "Pasanaku: not enough time has passed"
+    assert self.deposited[msg.sender][token_id][
+        rs.current_player_index
+    ], "Pasanaku: not deposited"
+
+    # Burn the token
+    erc1155._burn(msg.sender, token_id, 1)
+
+    # TODO: Claim the yield, and transfer the amount to the player, minus the fees
+    extcall IERC20(rs.asset).transfer(msg.sender, rs.amount)
 
     return True
 
