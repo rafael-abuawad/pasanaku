@@ -115,13 +115,7 @@ DAYS_30: constant(uint256) = 60 * 60 * 24 * 30
 
 # @dev The supported assets are the assets that can be used
 # to create a rotating savings game.
-SUPPORTED_ASSETS: constant(address[5]) = [
-    0xaf88d065e77c8cC2239327C5EDb3A432268e5831,  # USDC
-    0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9,  # USD₮0
-    0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,  # WETH
-    0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1,  # DAI
-    0x498Bf2B1e120FeD3ad3D42EA2165E9b73f99C1e5,  # crvUSD
-]
+SUPPORTED_ASSETS: immutable(address[5])
 
 
 # @dev The `RotatingSavings` struct is used to store the
@@ -140,16 +134,16 @@ struct RotatingSavings:
     last_updated_at: uint256
 
 
-# @dev The `token_id_to_rotating_savings` mapping is used to store the
+# @dev The `_token_id_to_rotating_savings` mapping is used to store the
 # information about a rotating savings game by its token ID.
-token_id_to_rotating_savings: HashMap[uint256, RotatingSavings]
+_token_id_to_rotating_savings: HashMap[uint256, RotatingSavings]
 
 
-# @dev The `deposited` mapping is used to store the information about
+# @dev The `_deposited` mapping is used to store the information about
 # which players have deposited in a rotating savings game by their address,
 # token ID, and index.
 # player address => token_id => index => deposited
-deposited: HashMap[address, HashMap[uint256, HashMap[uint256, bool]]]
+_deposited: HashMap[address, HashMap[uint256, HashMap[uint256, bool]]]
 
 
 # @dev An `uint256` counter variable that sets
@@ -160,7 +154,7 @@ _counter: uint256
 
 @deploy
 @payable
-def __init__(base_uri_: String[80]):
+def __init__(base_uri_: String[80], supported_assets: address[5]):
     """
     @dev To omit the opcodes for checking the `msg.value`
          in the creation-time EVM bytecode, the constructor
@@ -172,6 +166,7 @@ def __init__(base_uri_: String[80]):
     """
     ow.__init__()
     erc1155.__init__(base_uri_)
+    SUPPORTED_ASSETS = supported_assets
 
 
 @external
@@ -216,7 +211,7 @@ def create(
         last_updated_at=block.timestamp,
     )
 
-    self.token_id_to_rotating_savings[token_id] = rotating_savings
+    self._token_id_to_rotating_savings[token_id] = rotating_savings
 
     # Log the event
     log RotatingSavingsCreated(
@@ -246,18 +241,18 @@ def deposit(token_id: uint256) -> bool:
         uint256
     )  # dev: token does not exist
 
-    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     assert not rs.ended  # dev: rotating savings has ended
     assert msg.sender in rs.players  # dev: not a player
     assert (
         rs.players[rs.current_player_index] != msg.sender
     )  # dev: current player should not deposit
-    assert not self.deposited[msg.sender][token_id][
+    assert not self._deposited[msg.sender][token_id][
         rs.current_player_index
     ]  # dev: already deposited
 
     # Set the deposited flag
-    self.deposited[msg.sender][token_id][rs.current_player_index] = True
+    self._deposited[msg.sender][token_id][rs.current_player_index] = True
 
     # Update the total deposited
     total_deposited: uint256 = rs.total_deposited + rs.amount
@@ -267,7 +262,7 @@ def deposit(token_id: uint256) -> bool:
     rs.last_updated_at = block.timestamp
 
     # Update the rotating savings
-    self.token_id_to_rotating_savings[token_id] = rs
+    self._token_id_to_rotating_savings[token_id] = rs
 
     # Transfer the amount to the contract
     transfered: bool = extcall IERC20(rs.asset).transferFrom(
@@ -302,7 +297,7 @@ def claim(token_id: uint256) -> bool:
     assert msg.value >= PROTOCOL_FEE  # dev: insufficient fee
 
     # Get the rotating savings
-    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     assert not rs.ended  # dev: rotating savings has ended
 
     # Calculate the expected total deposited
@@ -328,7 +323,7 @@ def claim(token_id: uint256) -> bool:
 
 
     # Update the rotating savings
-    self.token_id_to_rotating_savings[token_id] = rs
+    self._token_id_to_rotating_savings[token_id] = rs
 
     # Transfer the total deposited to the player
     transfered: bool = extcall IERC20(rs.asset).transfer(
@@ -361,10 +356,10 @@ def recover(token_id: uint256) -> bool:
     assert erc1155.total_supply[token_id] != empty(uint256)  # dev: token does not exist
 
     # Get the rotating savings
-    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     assert not rs.ended  # dev: rotating savings has ended
     assert rs.last_updated_at + DAYS_30 > block.timestamp # dev: not enough time has passed
-    assert self.deposited[msg.sender][token_id][rs.current_player_index]  # dev: not deposited
+    assert self._deposited[msg.sender][token_id][rs.current_player_index]  # dev: not deposited
     assert rs.total_deposited > 0  # dev: no funds left to recover
 
     # Burn the token
@@ -372,7 +367,7 @@ def recover(token_id: uint256) -> bool:
 
     # Update the total deposited
     rs.total_deposited -= rs.amount
-    self.token_id_to_rotating_savings[token_id] = rs
+    self._token_id_to_rotating_savings[token_id] = rs
 
     # Transfer the amount to the player
     transfered: bool = extcall IERC20(rs.asset).transfer(
@@ -399,7 +394,7 @@ def rotating_savings(token_id: uint256) -> RotatingSavings:
     @param token_id The token ID of the rotating savings game.
     @return The rotating savings game.
     """
-    return self.token_id_to_rotating_savings[token_id]
+    return self._token_id_to_rotating_savings[token_id]
 
 
 @external
@@ -410,7 +405,7 @@ def total_deposited(token_id: uint256) -> uint256:
     @param token_id The token ID of the rotating savings game.
     @return The total deposited.
     """
-    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     return rs.total_deposited
 
 
@@ -422,7 +417,7 @@ def can_be_recovered(token_id: uint256) -> bool:
     @param token_id The token ID of the rotating savings game.
     @return Whether the rotating savings game can be recovered.
     """
-    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     return (
         rs.last_updated_at + DAYS_30 > block.timestamp
         and not rs.ended
@@ -438,7 +433,7 @@ def can_be_claimed(token_id: uint256) -> bool:
     @param token_id The token ID of the rotating savings game.
     @return Whether the rotating savings game can be claimed.
     """
-    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     return (
         not rs.ended
         and rs.current_player_index == len(rs.players) - 1
@@ -454,7 +449,7 @@ def current_player(token_id: uint256) -> address:
     @param token_id The token ID of the rotating savings game.
     @return The current player.
     """
-    rs: RotatingSavings = self.token_id_to_rotating_savings[token_id]
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     return rs.players[rs.current_player_index]
 
 
@@ -480,7 +475,7 @@ def protocol_fee() -> uint256:
 
 
 @external
-@pure
+@view
 def supported_assets() -> address[5]:
     """
     @dev Returns the supported assets.
