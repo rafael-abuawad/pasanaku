@@ -2,7 +2,7 @@
 # pragma nonreentrancy off
 # @license MIT
 """
-@title `Pasanaku` Rotating saving decentralized exchange
+@title `Pasanaku` Rotating saving decentralized protocol
 @custom:contract-name Pasanaku
 @license MIT
 @author Rafael Abuawad <x.com/rabuawad_>
