@@ -307,6 +307,7 @@ def claim(token_id: uint256) -> bool:
     )  # dev: not all players have deposited
 
     # Reset the total deposited
+    amount_to_transfer: uint256 = rs.total_deposited
     rs.total_deposited = 0
 
     # Update the current player index
@@ -327,7 +328,7 @@ def claim(token_id: uint256) -> bool:
 
     # Transfer the total deposited to the player
     transfered: bool = extcall IERC20(rs.asset).transfer(
-        msg.sender, rs.total_deposited, default_return_value=False
+        msg.sender, amount_to_transfer, default_return_value=False
     )
     assert transfered  # dev: transfer failed
 
@@ -358,7 +359,7 @@ def recover(token_id: uint256) -> bool:
     # Get the rotating savings
     rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     assert not rs.ended  # dev: rotating savings has ended
-    assert rs.last_updated_at + DAYS_30 > block.timestamp # dev: not enough time has passed
+    assert block.timestamp - rs.last_updated_at >= DAYS_30 # dev: not enough time has passed
     assert self._deposited[msg.sender][token_id][rs.current_player_index]  # dev: not deposited
     assert rs.total_deposited > 0  # dev: no funds left to recover
 
@@ -419,7 +420,7 @@ def can_be_recovered(token_id: uint256) -> bool:
     """
     rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
     return (
-        rs.last_updated_at + DAYS_30 > block.timestamp
+        block.timestamp - rs.last_updated_at >= DAYS_30
         and not rs.ended
         and rs.total_deposited > 0
     )
@@ -437,7 +438,7 @@ def can_be_claimed(token_id: uint256) -> bool:
     return (
         not rs.ended
         and rs.current_player_index == len(rs.players) - 1
-        and rs.last_updated_at + DAYS_30 > block.timestamp
+        and block.timestamp - rs.last_updated_at >= DAYS_30
     )
 
 
@@ -461,7 +462,8 @@ def player_count(token_id: uint256) -> uint256:
     @param token_id The token ID of the rotating savings game.
     @return The player count.
     """
-    return MAX_PLAYER_COUNT
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
+    return rs.player_count
 
 
 @external
