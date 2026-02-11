@@ -13,8 +13,11 @@ def test_pasanaku_owner(pasanaku_contract, deployer):
 
 
 def test_pasanaku_supported_assets(pasanaku_contract, supported_assets):
+    pasanaku_contract_supported_assets = pasanaku_contract.supported_assets()
+    assert len(pasanaku_contract_supported_assets) == len(supported_assets)
+
     for asset in supported_assets:
-        assert asset.address in pasanaku_contract.supported_assets()
+        assert asset.address in pasanaku_contract_supported_assets
 
 
 def test_pasanaku_create(
