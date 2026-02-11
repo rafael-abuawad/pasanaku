@@ -96,7 +96,7 @@ event Recovered:
 
 # @dev The protocol fee is the amount of ETH required to create,
 # deposit, and claim from a rotating savings game.
-PROTOCOL_FEE: constant(uint256) = as_wei_value(0.000045, "ether")
+PROTOCOL_FEE: constant(uint256) = as_wei_value(0.00000001, "ether")
 
 
 # @dev The token amount is the amount of tokens that are
@@ -115,7 +115,7 @@ DAYS_30: constant(uint256) = 60 * 60 * 24 * 30
 
 # @dev The supported assets are the assets that can be used
 # to create a rotating savings game.
-SUPPORTED_ASSETS: immutable(address[5])
+SUPPORTED_ASSETS: immutable(address[3])
 
 
 # @dev The `RotatingSavings` struct is used to store the
@@ -154,7 +154,7 @@ _counter: uint256
 
 @deploy
 @payable
-def __init__(base_uri_: String[80], supported_assets: address[5]):
+def __init__(base_uri_: String[80], supported_assets: address[3]):
     """
     @dev To omit the opcodes for checking the `msg.value`
          in the creation-time EVM bytecode, the constructor
@@ -388,6 +388,18 @@ def recover(token_id: uint256) -> bool:
 
 
 @external
+def collect_protocol_fees():
+    """
+    @dev Collect the protocol fees.
+    @notice The protocol fees are collected from action calls on the contract.
+            The fees are collected to the owner of the contract.
+    """
+    ow._check_owner()
+    send(ow.owner, self.balance)
+
+
+
+@external
 @view
 def rotating_savings(token_id: uint256) -> RotatingSavings:
     """
@@ -478,7 +490,7 @@ def protocol_fee() -> uint256:
 
 @external
 @view
-def supported_assets() -> address[5]:
+def supported_assets() -> address[3]:
     """
     @dev Returns the supported assets.
     @return The supported assets.

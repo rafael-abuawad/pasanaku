@@ -12,19 +12,19 @@ def deploy() -> list[VyperContract]:
     weth: VyperContract = MockERC20.deploy(
         "Fake WETH", "WETH", 18, 1000000000000000000, "WETH", "1"
     )
-    dai: VyperContract = MockERC20.deploy(
-        "Fake DAI", "DAI", 18, 1000000000000000000, "DAI", "1"
-    )
-    crvusd: VyperContract = MockERC20.deploy(
-        "Fake crvUSD", "crv", 18, 1000000000000000000, "crvUS", "1"
-    )
+    # dai: VyperContract = MockERC20.deploy(
+    #    "Fake DAI", "DAI", 18, 1000000000000000000, "DAI", "1"
+    # )
+    # crvusd: VyperContract = MockERC20.deploy(
+    #    "Fake crvUSD", "crv", 18, 1000000000000000000, "crvUS", "1"
+    # )
 
     print(f"USDC: {usdc.address}")
     print(f"USDT0: {usdt.address}")
     print(f"WETH: {weth.address}")
-    print(f"DAI: {dai.address}")
-    print(f"crvUSD: {crvusd.address}")
-    return [usdc, usdt, weth, dai, crvusd]
+    # print(f"DAI: {dai.address}")
+    # print(f"crvUSD: {crvusd.address}")
+    return [usdc, usdt, weth]
 
 
 def moccasin_main() -> list[VyperContract]:

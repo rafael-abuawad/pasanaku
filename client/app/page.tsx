@@ -12,9 +12,9 @@ export default function HomePage() {
 	const showEmpty = !address || (!isLoading && tokenIds.length === 0);
 
 	return (
-		<main className="min-h-[calc(100vh-4rem)]">
+		<main className="min-h-[calc(100vh-16rem)]">
 			{showEmpty ? (
-				<EmptyView containerClassName="min-h-[calc(100vh-4rem)]" />
+				<EmptyView containerClassName="min-h-[calc(100vh-16rem)]" />
 			) : (
 				<OngoingGamesList tokenIds={tokenIds} isLoading={isLoading} />
 			)}

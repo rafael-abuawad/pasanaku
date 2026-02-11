@@ -45,6 +45,14 @@ Supported assets and protocol fees are defined in the contract (see `Pasanaku.vy
 - **Tests**: `pytest` (see `tests/`).
 - **Scripts**: deployment and helpers in `script/`.
 
+## Deployemns
+- **Mock tokens**
+   - USDC: 0xd24Eab8A12c6d42d4614493Eb2F3F9aD34b1CF5F
+   - USDT0: 0xE0FB0F453aBfbd74368074cf0291711FC82cBc07
+   - WETH: 0x1c97C5715F20445400716DB9b1EA2e82F873cF35
+- **Pasanaku**
+   - 0x1886f4a411c195BC36fA347641b527d381f08E3A
+
 ### TODOs
 
 - Integrate Fluid’s yield functionality.

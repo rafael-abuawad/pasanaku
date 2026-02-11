@@ -1,25 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useReadContracts } from "wagmi";
 import { pasanakuAbi } from "@/lib/abi";
-import { useSupportedAssets } from "@/hooks/use-supported-assets";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PASANAKU_ADDRESS } from "@/lib/contract";
-
-type RotatingSavings = {
-	players: readonly `0x${string}`[];
-	asset: `0x${string}`;
-	amount: bigint;
-	player_count: bigint;
-	current_player_index: bigint;
-	creator: `0x${string}`;
-	total_deposited: bigint;
-	token_id: bigint;
-	ended: boolean;
-	created_at: bigint;
-	last_updated_at: bigint;
-};
+import type { RotatingSavings } from "@/components/pasanaku/ongoing-game-card";
+import { OngoingGameCard } from "@/components/pasanaku/ongoing-game-card";
+import { Spinner } from "../ui/spinner";
 
 type OngoingGamesListProps = {
 	tokenIds: bigint[];
@@ -30,7 +16,6 @@ export function OngoingGamesList({
 	tokenIds,
 	isLoading,
 }: OngoingGamesListProps) {
-	const { getSymbol } = useSupportedAssets();
 	const contracts = tokenIds.map((id) => ({
 		address: PASANAKU_ADDRESS,
 		abi: pasanakuAbi,
@@ -44,8 +29,11 @@ export function OngoingGamesList({
 
 	if (isLoading || isLoadingRs) {
 		return (
-			<main className="mx-auto max-w-3xl px-4 py-8">
-				<p className="text-muted-foreground text-sm">Loading games…</p>
+			<main className="mx-auto max-w-4xl container px-4 py-8 md:px-0">
+				<div className="flex items-center justify-center gap-2">
+					<Spinner />
+					<p className="text-muted-foreground text-sm">Loading games…</p>
+				</div>
 			</main>
 		);
 	}
@@ -59,41 +47,14 @@ export function OngoingGamesList({
 		.filter((g): g is { tokenId: bigint; rs: RotatingSavings } => g != null);
 
 	return (
-		<main className="mx-auto max-w-3xl px-4 py-8">
+		<main className="mx-auto max-w-4xl container px-4 py-8 md:px-0">
 			<h2 className="text-foreground mb-4 text-lg font-semibold">
 				Your rotating savings
 			</h2>
 			<ul className="flex flex-col gap-3">
-				{games.map(({ tokenId, rs }) => {
-					const expectedTotal = rs.amount * BigInt(Number(rs.player_count) - 1);
-					const symbol = getSymbol(rs.asset);
-					return (
-						<li key={String(tokenId)}>
-							<Link href={`/game/${tokenId}`}>
-								<Card className="transition-colors hover:bg-muted/50">
-									<CardHeader className="pb-2">
-										<span className="text-foreground font-medium">
-											Game #{String(tokenId)}
-										</span>
-										<span className="text-muted-foreground text-sm">
-											{symbol} · {rs.amount.toString()} per round ·{" "}
-											{Number(rs.player_count)} players
-										</span>
-									</CardHeader>
-									<CardContent className="pt-0">
-										<p className="text-muted-foreground text-xs">
-											Deposited: {rs.total_deposited.toString()} /{" "}
-											{expectedTotal.toString()} · Round{" "}
-											{Number(rs.current_player_index) + 1} of{" "}
-											{Number(rs.player_count)}
-											{rs.ended ? " · Ended" : ""}
-										</p>
-									</CardContent>
-								</Card>
-							</Link>
-						</li>
-					);
-				})}
+				{games.map(({ tokenId, rs }) => (
+					<OngoingGameCard key={String(tokenId)} tokenId={tokenId} rs={rs} />
+				))}
 			</ul>
 		</main>
 	);

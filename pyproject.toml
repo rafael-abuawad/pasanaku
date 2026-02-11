@@ -8,4 +8,5 @@ dependencies = [
     "mamushi>=0.1.0",
     "moccasin>=0.4.3",
     "pytest>=9.0.2",
+    "ruff>=0.15.0",
 ]

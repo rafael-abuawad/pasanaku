@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import { Web3Provider } from "@/components/common/web3-provider";
 import { Header } from "@/components/common/header";
+import { Footer } from "@/components/common/footer";
 import "./globals.css";
 import { ThemeProvider } from "@/components/common/theme-provider";
 
@@ -50,8 +51,11 @@ export default function RootLayout({
 					disableTransitionOnChange
 				>
 					<Web3Provider>
-						<Header />
-						{children}
+						<div className="min-h-screen flex flex-col">
+							<Header />
+							<main className="flex-1">{children}</main>
+							<Footer />
+						</div>
 					</Web3Provider>
 				</ThemeProvider>
 			</body>

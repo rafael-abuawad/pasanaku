@@ -398,6 +398,47 @@ def test_recover_success_after_30_days(funded_game, pasanaku_contract, protocol_
     assert asset.balanceOf(players[1]) == balance_before + amount
 
 
+# --- Collect protocol fees ---
+
+
+def test_collect_protocol_fees_reverts_not_owner(
+    pasanaku_contract, deployer, test_accounts, protocol_fee
+):
+    with boa.env.prank(deployer):
+        # Ensure contract has some balance (e.g. from a create)
+        pasanaku_contract.create(
+            pasanaku_contract.supported_assets()[0],
+            test_accounts[:2],
+            100,
+            value=protocol_fee,
+        )
+    non_owner = test_accounts[5]
+    with boa.env.prank(non_owner):
+        with boa.reverts("ownable: caller is not the owner"):
+            pasanaku_contract.collect_protocol_fees()
+
+
+def test_collect_protocol_fees_success_sends_balance_to_owner(
+    pasanaku_contract, deployer, test_accounts, protocol_fee, supported_assets
+):
+    with boa.env.prank(deployer):
+        pasanaku_contract.create(
+            supported_assets[0].address,
+            test_accounts[:2],
+            100,
+            value=protocol_fee,
+        )
+    owner_balance_before = boa.env.get_balance(deployer)
+    contract_balance_before = boa.env.get_balance(pasanaku_contract.address)
+    assert contract_balance_before == protocol_fee
+    with boa.env.prank(deployer):
+        pasanaku_contract.collect_protocol_fees()
+    assert boa.env.get_balance(pasanaku_contract.address) == 0
+    assert (
+        boa.env.get_balance(deployer) == owner_balance_before + contract_balance_before
+    )
+
+
 # --- Views ---
 
 
@@ -462,12 +503,12 @@ def test_player_count_returns_actual_count(created_game, pasanaku_contract):
 
 
 def test_protocol_fee_returns_constant(pasanaku_contract):
-    assert pasanaku_contract.protocol_fee() == int(0.000045 * 10**18)
+    assert pasanaku_contract.protocol_fee() == int(0.00000001 * 10**18)
 
 
 def test_supported_assets_returns_deployed_list(pasanaku_contract, supported_assets):
     returned = pasanaku_contract.supported_assets()
-    assert len(returned) == 5
+    assert len(returned) == 3
     for asset in supported_assets:
         assert asset.address in returned
 

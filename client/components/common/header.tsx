@@ -15,6 +15,14 @@ export function Header() {
 					Pasanaku
 				</Link>
 				<div className="flex items-center gap-2">
+					<Link href="/create">
+						<Button
+							variant="link"
+							className="text-foreground hover:text-primary cursor-pointer"
+						>
+							Create
+						</Button>
+					</Link>
 					<Link href="/faucet">
 						<Button
 							variant="link"
