@@ -337,8 +337,8 @@ def claim(token_id: uint256) -> bool:
         player=msg.sender,
         token_id=token_id,
         index=rs.current_player_index,
-        amount=rs.total_deposited,
-        total_deposited=rs.total_deposited,
+        amount=amount_to_transfer,
+        total_deposited=amount_to_transfer,
     )
 
     return True
@@ -484,6 +484,42 @@ def supported_assets() -> address[5]:
     @return The supported assets.
     """
     return SUPPORTED_ASSETS
+
+@external
+@view
+def has_deposited(account: address, token_id: uint256, index: uint256) -> bool:
+    """
+    @dev Returns whether the account has deposited for the given token ID and index.
+    @param account The account to check.
+    @param token_id The token ID to check.
+    @param index The index to check.
+    @return Whether the account has deposited for the given token ID and index.
+    """
+    return self._deposited[account][token_id][index]
+
+
+@external
+@view
+def can_current_recipient_claim(token_id: uint256) -> bool:
+    """
+    @dev Returns whether the current recipient can claim for the given token ID.
+    @param token_id The token ID to check.
+    @return Whether the current recipient can claim for the given token ID.
+    """
+    rs: RotatingSavings = self._token_id_to_rotating_savings[token_id]
+    return (
+        not rs.ended
+        and rs.total_deposited >= rs.amount * (len(rs.players) - 1)
+    )
+
+@external
+@view
+def next_token_id() -> uint256:
+    """
+    @dev Returns the next token ID.
+    @return The next token ID.
+    """
+    return self._counter
 
 
 @internal

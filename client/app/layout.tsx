@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import { Web3Provider } from "@/components/common/web3-provider";
+import { Header } from "@/components/common/header";
 import "./globals.css";
 import { ThemeProvider } from "@/components/common/theme-provider";
+
+const fiftiesFont = localFont({
+	src: "../public/fonts/Fifties.ttf",
+	variable: "--font-fifties",
+});
 
 const notoSans = Noto_Sans({ variable: "--font-sans" });
 
@@ -28,7 +35,11 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en" className={notoSans.variable} suppressHydrationWarning>
+		<html
+			lang="en"
+			className={`${notoSans.variable} ${fiftiesFont.variable}`}
+			suppressHydrationWarning
+		>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
@@ -38,7 +49,10 @@ export default function RootLayout({
 					enableSystem
 					disableTransitionOnChange
 				>
-					<Web3Provider>{children}</Web3Provider>
+					<Web3Provider>
+						<Header />
+						{children}
+					</Web3Provider>
 				</ThemeProvider>
 			</body>
 		</html>
