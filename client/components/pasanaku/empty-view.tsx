@@ -9,6 +9,10 @@ import {
 	CardDescription,
 } from "@/components/ui/card";
 import { CirclePlus, Plus, Wallet, Gift, RotateCcw } from "lucide-react";
+import { useConnection } from "wagmi";
+import { useRouter } from "next/navigation";
+import { ConnectKitButton } from "connectkit";
+import { useCallback } from "react";
 
 const dottedBoxClassName =
 	"bg-background text-foreground flex min-w-0 flex-1 flex-col items-center justify-center gap-4 border border-dashed rounded-md p-8 sm:p-12";
@@ -50,6 +54,22 @@ type EmptyViewProps = {
  * "Create new Rotating Savings" links to /create.
  */
 export function EmptyView({ className, containerClassName }: EmptyViewProps) {
+	const router = useRouter();
+	const { isConnected } = useConnection();
+
+	const handleCreateNew = useCallback(
+		(show: (() => void) | undefined) => {
+			if (isConnected) {
+				router.push("/create");
+			} else {
+				if (show) {
+					show();
+				}
+			}
+		},
+		[isConnected, router],
+	);
+
 	return (
 		<div
 			className={cn(
@@ -80,36 +100,42 @@ export function EmptyView({ className, containerClassName }: EmptyViewProps) {
 					))}
 				</div>
 			</section>
-			<Link
-				href="/create"
-				data-slot="empty-view-content"
-				className={cn(
-					dottedBoxClassName,
-					"w-full cursor-pointer transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-					className,
-				)}
-			>
-				<div className="flex items-center justify-center -space-x-2">
-					<div
-						className="bg-muted size-10 rounded-full shrink-0 flex items-center justify-center text-muted-foreground"
-						aria-hidden
-					>
-						<Plus className="size-5" strokeWidth={2.5} />
-					</div>
-				</div>
-				<div className="flex flex-col items-center justify-center gap-1">
-					<h3 className="text-foreground text-center text-xl font-semibold sm:text-2xl">
-						No Rotating Savings
-					</h3>
-					<p className="text-muted-foreground text-center text-sm">
-						Create your first game and invite players to contribute.
-					</p>
-				</div>
-				<span className="inline-flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5 text-sm font-medium text-foreground mt-1">
-					<Plus className="size-4" strokeWidth={2.5} />
-					Create new
-				</span>
-			</Link>
+			<ConnectKitButton.Custom>
+				{({ show }) => {
+					return (
+						<button
+							onClick={() => handleCreateNew(show)}
+							data-slot="empty-view-content"
+							className={cn(
+								dottedBoxClassName,
+								"w-full cursor-pointer transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+								className,
+							)}
+						>
+							<div className="flex items-center justify-center -space-x-2">
+								<div
+									className="bg-muted size-10 rounded-full shrink-0 flex items-center justify-center text-muted-foreground"
+									aria-hidden
+								>
+									<Plus className="size-5" strokeWidth={2.5} />
+								</div>
+							</div>
+							<div className="flex flex-col items-center justify-center gap-1">
+								<h3 className="text-foreground text-center text-xl font-semibold sm:text-2xl">
+									No Rotating Savings
+								</h3>
+								<p className="text-muted-foreground text-center text-sm">
+									Create your first game and invite players to contribute.
+								</p>
+							</div>
+							<span className="inline-flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5 text-sm font-medium text-foreground mt-1">
+								<Plus className="size-4" strokeWidth={2.5} />
+								Create new
+							</span>
+						</button>
+					);
+				}}
+			</ConnectKitButton.Custom>
 		</div>
 	);
 }
