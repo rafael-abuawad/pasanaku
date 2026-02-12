@@ -59,7 +59,7 @@ export function DepositClaimActions({
 		functionName: "has_deposited",
 		args:
 			address !== undefined
-				? [address, tokenId, rs.current_player_index]
+				? [address, tokenId, rs.current_index]
 				: undefined,
 	});
 

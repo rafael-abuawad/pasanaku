@@ -11,7 +11,7 @@ export type RotatingSavings = {
 	asset: `0x${string}`;
 	amount: bigint;
 	player_count: bigint;
-	current_player_index: bigint;
+	current_index: bigint;
 	creator: `0x${string}`;
 	total_deposited: bigint;
 	token_id: bigint;
@@ -59,7 +59,7 @@ export function OngoingGameCard({ tokenId, rs }: OngoingGameCardProps) {
 					<CardContent className="pt-0">
 						<p className="text-muted-foreground text-xs">
 							Deposited: {formattedDeposited} / {formattedExpectedTotal} · Round{" "}
-							{Number(rs.current_player_index) + 1} of {Number(rs.player_count)}
+							{Number(rs.current_index) + 1} of {Number(rs.player_count)}
 							{rs.ended ? " · Ended" : ""}
 						</p>
 					</CardContent>

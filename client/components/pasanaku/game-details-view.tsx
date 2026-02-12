@@ -69,7 +69,7 @@ export function GameDetailsView({
 				<CardHeader>
 					<span className="text-foreground font-medium">Round details</span>
 					<span className="text-muted-foreground text-sm">
-						Round {Number(rs.current_player_index) + 1} of{" "}
+						Round {Number(rs.current_index) + 1} of{" "}
 						{Number(rs.player_count)}
 						{rs.ended ? " · Ended" : ""}
 					</span>
@@ -107,7 +107,7 @@ export function GameDetailsView({
 			{/* Deposits table */}
 			<DepositsTable
 				tokenId={tokenId}
-				currentRoundIndex={rs.current_player_index}
+				currentRoundIndex={rs.current_index}
 				players={rs.players}
 			/>
 		</div>

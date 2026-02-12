@@ -1,7 +1,43 @@
 import pytest
 import boa
+
+from typing import NamedTuple
 from src import pasanaku as Pasanaku
 from script import mock_erc20s
+
+
+class RotatingSavingsView(NamedTuple):
+    """Read-only view of RotatingSavings struct; matches src/pasanaku.vy field order."""
+
+    participants: tuple
+    asset: str
+    amount: int
+    current_index: int
+    total_deposited: int
+    token_id: int
+    ended: bool
+    recovered: bool
+    creator: str
+    created_at: int
+    last_updated_at: int
+
+
+def get_rotating_savings(contract, token_id: int) -> RotatingSavingsView:
+    """Return rotating_savings(token_id) as a named view for readable tests."""
+    raw = contract.rotating_savings(token_id)
+    return RotatingSavingsView(
+        participants=tuple(raw[0]),
+        asset=raw[1],
+        amount=raw[2],
+        current_index=raw[3],
+        total_deposited=raw[4],
+        token_id=raw[5],
+        ended=raw[6],
+        recovered=raw[7],
+        creator=raw[8],
+        created_at=raw[9],
+        last_updated_at=raw[10],
+    )
 
 
 @pytest.fixture
@@ -28,7 +64,7 @@ def supported_assets():
 
 @pytest.fixture
 def protocol_fee():
-    return int(0.000045 * 10**18)  # 0.000045 ETH
+    return 0  # matches PROTOCOL_FEE in contract ETH
 
 
 @pytest.fixture

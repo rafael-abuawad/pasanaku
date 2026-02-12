@@ -792,7 +792,7 @@ export const pasanakuAbi = [
 						type: "uint256",
 					},
 					{
-						name: "current_player_index",
+						name: "current_index",
 						type: "uint256",
 					},
 					{
