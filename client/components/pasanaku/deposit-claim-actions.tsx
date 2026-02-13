@@ -58,9 +58,7 @@ export function DepositClaimActions({
 		abi: pasanakuAbi,
 		functionName: "has_deposited",
 		args:
-			address !== undefined
-				? [address, tokenId, rs.current_index]
-				: undefined,
+			address !== undefined ? [address, tokenId, rs.current_index] : undefined,
 	});
 
 	const writeContract = useWriteContract();

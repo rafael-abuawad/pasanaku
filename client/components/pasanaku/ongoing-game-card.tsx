@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatUnits } from "viem";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { getDecimals, getSymbol } from "@/lib/supported-assets";
 import type { Address } from "viem";
 
@@ -37,31 +37,37 @@ function formatTokenAmount(amount: bigint, decimals: number): string {
 export function OngoingGameCard({ tokenId, rs }: OngoingGameCardProps) {
 	const decimals = getDecimals(rs.asset as Address);
 	const symbol = getSymbol(rs.asset as Address);
-	const expectedTotal = rs.amount * BigInt(Number(rs.player_count) - 1);
-
 	const formattedAmount = formatTokenAmount(rs.amount, decimals);
-	const formattedDeposited = formatTokenAmount(rs.total_deposited, decimals);
-	const formattedExpectedTotal = formatTokenAmount(expectedTotal, decimals);
+	const roundLabel = `${Number(rs.current_index) + 1}/${Number(rs.player_count)}`;
 
 	return (
-		<li>
-			<Link href={`/game/${tokenId}`}>
-				<Card className="transition-colors hover:bg-muted/50">
-					<CardHeader className="pb-2">
-						<span className="text-foreground font-medium">
-							Game #{String(tokenId)}
-						</span>
-						<span className="text-muted-foreground text-sm">
-							{symbol} · {formattedAmount} per round · {Number(rs.player_count)}{" "}
-							players
-						</span>
-					</CardHeader>
-					<CardContent className="pt-0">
-						<p className="text-muted-foreground text-xs">
-							Deposited: {formattedDeposited} / {formattedExpectedTotal} · Round{" "}
-							{Number(rs.current_index) + 1} of {Number(rs.player_count)}
-							{rs.ended ? " · Ended" : ""}
-						</p>
+		<li className="list-none">
+			<Link href={`/game/${tokenId}`} className="block h-full">
+				<Card className="overflow-hidden transition-all hover:shadow-lg hover:ring-2 hover:ring-primary/20 h-full flex flex-col pt-0">
+					{/* Dynamic token image from API */}
+					<div className="relative w-full aspect-[315/600] bg-muted shrink-0">
+						<img
+							src={`/api/token/${tokenId}/image`}
+							alt={`Pasanaku game #${String(tokenId)}`}
+							className="w-full h-full object-cover object-center"
+							width={315}
+							height={600}
+						/>
+					</div>
+					<CardContent className="p-3 flex flex-col gap-1 shrink-0">
+						<div className="flex items-center justify-between gap-2">
+							<span className="text-sm font-medium truncate">
+								Game #{String(tokenId)}
+							</span>
+							<span className="text-muted-foreground text-xs shrink-0">
+								{formattedAmount} {symbol} · {roundLabel}
+							</span>
+						</div>
+						{rs.ended && (
+							<span className="text-xs text-amber-600 dark:text-amber-400">
+								Ended
+							</span>
+						)}
 					</CardContent>
 				</Card>
 			</Link>

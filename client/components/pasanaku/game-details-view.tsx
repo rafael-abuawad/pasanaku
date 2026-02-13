@@ -11,6 +11,9 @@ import { TokenDisplay } from "./token-display";
 import { DepositClaimActions } from "./deposit-claim-actions";
 import { DepositsTable } from "./deposits-table";
 import type { Address } from "viem";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { ArrowLeftIcon } from "lucide-react";
 
 const numberFormat = Intl.NumberFormat("en-US", {
 	minimumFractionDigits: 0,
@@ -55,9 +58,16 @@ export function GameDetailsView({
 		<div className="mx-auto max-w-4xl container px-4 py-8 md:px-0 space-y-6">
 			{/* Header */}
 			<header className="space-y-1 border-b pb-4">
-				<h1 className="text-foreground text-xl font-semibold">
-					Game #{String(tokenId)}
-				</h1>
+				<div className="flex items-center gap-2">
+					<Link href="/">
+						<Button variant="outline" size="icon">
+							<ArrowLeftIcon className="size-4" />
+						</Button>
+					</Link>
+					<h1 className="text-foreground text-xl font-semibold">
+						Game #{String(tokenId)}
+					</h1>
+				</div>
 				<p className="text-muted-foreground text-sm">
 					<TokenDisplay address={rs.asset as Address} /> · {formattedAmount} per
 					round · {Number(rs.player_count)} players
@@ -69,8 +79,7 @@ export function GameDetailsView({
 				<CardHeader>
 					<span className="text-foreground font-medium">Round details</span>
 					<span className="text-muted-foreground text-sm">
-						Round {Number(rs.current_index) + 1} of{" "}
-						{Number(rs.player_count)}
+						Round {Number(rs.current_index) + 1} of {Number(rs.player_count)}
 						{rs.ended ? " · Ended" : ""}
 					</span>
 				</CardHeader>

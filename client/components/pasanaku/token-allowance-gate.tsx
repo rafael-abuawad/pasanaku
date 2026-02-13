@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { PASANAKU_ADDRESS } from "@/lib/contract";
 import { getSymbol } from "@/lib/supported-assets";
 import { useCallback } from "react";
+import { ConnectKitButton } from "connectkit";
 
 const addressRegex = /^0x[a-fA-F0-9]{40}$/;
 
@@ -19,7 +20,7 @@ export function TokenAllowanceGate({
 	tokenAddress,
 	children,
 }: TokenAllowanceGateProps) {
-	const { address } = useConnection();
+	const { address, isConnected } = useConnection();
 	const isValidToken =
 		tokenAddress !== undefined && addressRegex.test(tokenAddress);
 
@@ -52,6 +53,23 @@ export function TokenAllowanceGate({
 		});
 		await refetch();
 	}, [tokenAddress, writeContract]);
+
+	if (!isConnected) {
+		return (
+			<ConnectKitButton.Custom>
+				{({ isConnecting, show }) => (
+					<Button
+						type="button"
+						onClick={show}
+						disabled={isConnecting}
+						className="grow md:grow-0"
+					>
+						Connect your wallet
+					</Button>
+				)}
+			</ConnectKitButton.Custom>
+		);
+	}
 
 	if (!address) {
 		return null;

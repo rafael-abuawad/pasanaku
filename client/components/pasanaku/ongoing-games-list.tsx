@@ -48,10 +48,10 @@ export function OngoingGamesList({
 
 	return (
 		<main className="mx-auto max-w-4xl container px-4 py-8 md:px-0">
-			<h2 className="text-foreground mb-4 text-lg font-semibold">
+			<h2 className="text-foreground mb-6 text-lg font-semibold">
 				Your rotating savings
 			</h2>
-			<ul className="flex flex-col gap-3">
+			<ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				{games.map(({ tokenId, rs }) => (
 					<OngoingGameCard key={String(tokenId)} tokenId={tokenId} rs={rs} />
 				))}

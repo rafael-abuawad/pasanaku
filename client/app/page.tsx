@@ -14,7 +14,7 @@ export default function HomePage() {
 	return (
 		<main className="min-h-[calc(100vh-16rem)]">
 			{showEmpty ? (
-				<EmptyView containerClassName="min-h-[calc(100vh-16rem)]" />
+				<EmptyView />
 			) : (
 				<OngoingGamesList tokenIds={tokenIds} isLoading={isLoading} />
 			)}

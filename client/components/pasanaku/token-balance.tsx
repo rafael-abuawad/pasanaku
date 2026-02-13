@@ -1,6 +1,6 @@
 import { Address, formatUnits, zeroAddress } from "viem";
 import { erc20Abi } from "viem";
-import { useReadContracts } from "wagmi";
+import { useConnection, useReadContracts } from "wagmi";
 import { Spinner } from "../ui/spinner";
 import { FieldDescription, FieldError } from "../ui/field";
 
@@ -15,6 +15,7 @@ export function TokenBalance({
 	address,
 	symbol,
 }: TokenBalanceProps) {
+	const { isConnected } = useConnection();
 	const { data, isPending } = useReadContracts({
 		contracts: [
 			{
@@ -33,6 +34,17 @@ export function TokenBalance({
 			enabled: !!connectedAddress,
 		},
 	});
+
+	if (!isConnected) {
+		return (
+			<FieldDescription>
+				Token balance:{" "}
+				<span className="underline">
+					Connect your wallet to see your token balance
+				</span>
+			</FieldDescription>
+		);
+	}
 
 	if (isPending || !data) {
 		return <Spinner />;

@@ -45,7 +45,6 @@ import { Spinner } from "@/components/ui/spinner";
 import Link from "next/link";
 import { ResponsiveActionModal } from "@/components/common/responsive-action-modal";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const addressRegex = /^0x[a-fA-F0-9]{40}$/;
 

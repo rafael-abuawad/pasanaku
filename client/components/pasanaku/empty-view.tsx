@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
 	Card,
@@ -44,16 +43,11 @@ const howItWorksCards = [
 	},
 ];
 
-type EmptyViewProps = {
-	className?: string;
-	containerClassName?: string;
-};
-
 /**
  * Empty state when no wallet is connected or no pasanakus exist.
  * "Create new Rotating Savings" links to /create.
  */
-export function EmptyView({ className, containerClassName }: EmptyViewProps) {
+export function EmptyView() {
 	const router = useRouter();
 	const { isConnected } = useConnection();
 
@@ -71,12 +65,7 @@ export function EmptyView({ className, containerClassName }: EmptyViewProps) {
 	);
 
 	return (
-		<div
-			className={cn(
-				"mx-auto container max-w-4xl flex w-full min-w-0 flex-col content-center items-center justify-center gap-8 py-4 px-4 md:py-8 md:px-0",
-				containerClassName,
-			)}
-		>
+		<div className="mx-auto container max-w-4xl flex w-full min-w-0 flex-col content-center items-center justify-center gap-8 py-4 px-4 md:py-8 md:px-0">
 			<section className="w-full" aria-label="How Pasanaku works">
 				<h2 className="text-foreground mb-4 text-center text-lg font-semibold md:text-left">
 					How it works
@@ -108,8 +97,7 @@ export function EmptyView({ className, containerClassName }: EmptyViewProps) {
 							data-slot="empty-view-content"
 							className={cn(
 								dottedBoxClassName,
-								"w-full cursor-pointer transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-								className,
+								"w-full h-full cursor-pointer transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 							)}
 						>
 							<div className="flex items-center justify-center -space-x-2">
