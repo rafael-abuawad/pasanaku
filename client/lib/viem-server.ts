@@ -10,19 +10,48 @@ export const publicClient = createPublicClient({
 	transport: http(RPC_URL),
 });
 
-export type RotatingSavingsResult = Awaited<
-	ReturnType<typeof getRotatingSavings>
->;
+/**
+ * Raw tuple returned by the contract rotating_savings(token_id) view.
+ */
+type RotatingSavingsRaw = {
+	participants: readonly `0x${string}`[];
+	asset: `0x${string}`;
+	amount: bigint;
+	current_index: bigint;
+	total_deposited: bigint;
+	token_id: bigint;
+	ended: boolean;
+	recovered: boolean;
+	creator: `0x${string}`;
+	created_at: bigint;
+	last_updated_at: bigint;
+};
+
+/**
+ * Normalized shape with players and player_count for consumers that expect them.
+ */
+export type RotatingSavingsResult = RotatingSavingsRaw & {
+	players: readonly `0x${string}`[];
+	player_count: bigint;
+};
 
 /**
  * Fetches rotating_savings game data for a token ID from the Pasanaku contract on Arbitrum.
- * Throws if the game does not exist or the RPC call fails.
+ * Returns a normalized result with players and player_count. Throws if the game does not exist or the RPC call fails.
  */
-export async function getRotatingSavings(tokenId: bigint) {
-	return publicClient.readContract({
+export async function getRotatingSavings(
+	tokenId: bigint,
+): Promise<RotatingSavingsResult> {
+	const raw = await publicClient.readContract({
 		address: PASANAKU_ADDRESS,
 		abi: pasanakuAbi,
 		functionName: "rotating_savings",
 		args: [tokenId],
 	});
+	const result = raw as RotatingSavingsRaw;
+	return {
+		...result,
+		players: result.participants,
+		player_count: BigInt(result.participants.length),
+	};
 }

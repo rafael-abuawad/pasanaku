@@ -8,6 +8,10 @@
 @author Rafael Abuawad <x.com/rabuawad_>
 """
 
+########################### TEST CONTRACT ###########################
+# This code is for testing purposes only, is not production ready and
+# is not audited. Everything is subject to change. Use at your own risk.
+#####################################################################
 
 # @dev We import the `IERC20` interface,
 # which is a built-in interface of the Vyper compiler.

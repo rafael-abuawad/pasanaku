@@ -50,12 +50,11 @@ Supported assets and protocol fees are defined in the contract (see `Pasanaku.vy
    - USDC: 0xd24Eab8A12c6d42d4614493Eb2F3F9aD34b1CF5F
    - USDT0: 0xE0FB0F453aBfbd74368074cf0291711FC82cBc07
    - WETH: 0x1c97C5715F20445400716DB9b1EA2e82F873cF35
-- **Pasanaku**
-   - 0x1886f4a411c195BC36fA347641b527d381f08E3A
+- **Pasanaku** (Veryfied smartcontract)
+   - [0x530a4cBdC461181519E5459309411710e8C23EE6](https://arbitrum.blockscout.com/address/0x530a4cBdC461181519E5459309411710e8C23EE6?tab=contract_code)
 
 ### TODOs
 
-- Integrate Fluid’s yield functionality.
 - Make protocol fee dynamic (e.g. 0.10 USD in ETH).
 - Set supported tokens as constants (USDC, USDT, WETH, DAI, crvUSD, etc. as in contract).
 

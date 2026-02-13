@@ -39,18 +39,18 @@ export function DepositClaimActions({
 	const [claimModalOpen, setClaimModalOpen] = useState(false);
 	const [depositModalOpen, setDepositModalOpen] = useState(false);
 
-	const { data: currentPlayer } = useReadContract({
-		address: PASANAKU_ADDRESS,
-		abi: pasanakuAbi,
-		functionName: "current_player",
-		args: [tokenId],
-	});
-
 	const { data: canClaim } = useReadContract({
 		address: PASANAKU_ADDRESS,
 		abi: pasanakuAbi,
-		functionName: "can_current_recipient_claim",
-		args: [tokenId],
+		functionName: "can_claim",
+		args: address !== undefined ? [address, tokenId] : undefined,
+	});
+
+	const { data: canDeposit } = useReadContract({
+		address: PASANAKU_ADDRESS,
+		abi: pasanakuAbi,
+		functionName: "can_deposit",
+		args: address !== undefined ? [address, tokenId] : undefined,
 	});
 
 	const { data: hasDeposited } = useReadContract({
@@ -63,18 +63,9 @@ export function DepositClaimActions({
 
 	const writeContract = useWriteContract();
 
-	const isCurrentRecipient =
-		address !== undefined &&
-		currentPlayer !== undefined &&
-		address.toLowerCase() === (currentPlayer as string).toLowerCase();
-	const isPlayer =
-		address !== undefined &&
-		rs.players.some((p) => p.toLowerCase() === address.toLowerCase());
-	const canShowClaim = !rs.ended && isCurrentRecipient && canClaim === true;
-	const canShowDeposit =
-		!rs.ended && isPlayer && !isCurrentRecipient && hasDeposited === false;
-	const alreadyDeposited =
-		!rs.ended && isPlayer && !isCurrentRecipient && hasDeposited === true;
+	const canShowClaim = !rs.ended && canClaim === true;
+	const canShowDeposit = !rs.ended && canDeposit === true;
+	const alreadyDeposited = !rs.ended && hasDeposited === true;
 
 	useEffect(() => {
 		if (writeContract.status === "success") {

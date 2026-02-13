@@ -11,6 +11,10 @@ is_zksync = false
 url = "https://arb1.arbitrum.io/rpc"
 prompt_live = true
 save_to_db = true
+explorer_uri = "https://arbitrum.blockscout.com/"
+explorer_type = "blockscout"
+explorer_api_key = "${EXPLORER_API_KEY}"
+chain_id = 42161
 
 [networks.anvil]
 url = "http://127.0.0.1:8545"

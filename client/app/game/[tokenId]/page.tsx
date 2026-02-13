@@ -25,6 +25,27 @@ function isEmptyGame(rs: RotatingSavings): boolean {
 	);
 }
 
+/** Maps raw rotating_savings tuple to normalized shape with players and player_count. */
+function normalizeRotatingSavings(raw: {
+	participants: readonly `0x${string}`[];
+	asset: `0x${string}`;
+	amount: bigint;
+	current_index: bigint;
+	total_deposited: bigint;
+	token_id: bigint;
+	ended: boolean;
+	recovered: boolean;
+	creator: `0x${string}`;
+	created_at: bigint;
+	last_updated_at: bigint;
+}): RotatingSavings {
+	return {
+		...raw,
+		players: raw.participants,
+		player_count: BigInt(raw.participants.length),
+	};
+}
+
 export default function GamePage() {
 	const params = useParams();
 	const tokenIdParam = params?.tokenId as string | undefined;
@@ -47,13 +68,20 @@ export default function GamePage() {
 		args: tokenId !== null ? [tokenId] : undefined,
 	});
 
+	const normalizedRs =
+		rs != null
+			? normalizeRotatingSavings(
+					rs as Parameters<typeof normalizeRotatingSavings>[0],
+				)
+			: undefined;
+
 	const isLoading = isLoadingNextId || (tokenId !== null && isLoadingRs);
 	const outOfRange =
 		tokenId !== null && nextTokenId !== undefined && tokenId >= nextTokenId;
 	const notFound =
 		tokenId === null ||
 		outOfRange ||
-		(rs !== undefined && isEmptyGame(rs as RotatingSavings));
+		(normalizedRs !== undefined && isEmptyGame(normalizedRs));
 
 	if (isLoading) {
 		return (
@@ -78,7 +106,7 @@ export default function GamePage() {
 	return (
 		<GameDetailsView
 			tokenId={tokenId!}
-			rs={rs as RotatingSavings}
+			rs={normalizedRs!}
 			onRefetch={() => refetch()}
 		/>
 	);

@@ -12,6 +12,27 @@ type OngoingGamesListProps = {
 	isLoading: boolean;
 };
 
+/** Maps raw rotating_savings tuple to normalized shape with players and player_count. */
+function normalizeRotatingSavings(raw: {
+	participants: readonly `0x${string}`[];
+	asset: `0x${string}`;
+	amount: bigint;
+	current_index: bigint;
+	total_deposited: bigint;
+	token_id: bigint;
+	ended: boolean;
+	recovered: boolean;
+	creator: `0x${string}`;
+	created_at: bigint;
+	last_updated_at: bigint;
+}): RotatingSavings {
+	return {
+		...raw,
+		players: raw.participants,
+		player_count: BigInt(raw.participants.length),
+	};
+}
+
 export function OngoingGamesList({
 	tokenIds,
 	isLoading,
@@ -39,11 +60,11 @@ export function OngoingGamesList({
 	}
 
 	const games = (results ?? [])
-		.map((r, i) =>
-			r.status === "success" && r.result
-				? { tokenId: tokenIds[i], rs: r.result as RotatingSavings }
-				: null,
-		)
+		.map((r, i) => {
+			if (r.status !== "success" || !r.result) return null;
+			const raw = r.result as Parameters<typeof normalizeRotatingSavings>[0];
+			return { tokenId: tokenIds[i], rs: normalizeRotatingSavings(raw) };
+		})
 		.filter((g): g is { tokenId: bigint; rs: RotatingSavings } => g != null);
 
 	return (

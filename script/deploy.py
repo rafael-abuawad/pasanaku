@@ -9,7 +9,7 @@ SUPPORTED_ASSETS = [
 
 
 def deploy() -> VyperContract:
-    base_uri: str = "https://pasanaku.com/api/v1/token/"
+    base_uri: str = "https://pasanaku-ten.vercel.app/api/v1/token/"
     pasanaku: VyperContract = Pasanaku.deploy(base_uri, SUPPORTED_ASSETS)
     return pasanaku
 

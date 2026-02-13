@@ -16,6 +16,7 @@ export type RotatingSavings = {
 	total_deposited: bigint;
 	token_id: bigint;
 	ended: boolean;
+	recovered?: boolean;
 	created_at: bigint;
 	last_updated_at: bigint;
 };

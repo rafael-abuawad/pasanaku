@@ -30,7 +30,7 @@ export const pasanakuAbi = [
 		name: "RotatingSavingsCreated",
 		inputs: [
 			{
-				name: "players",
+				name: "participants",
 				type: "address[]",
 				indexed: false,
 			},
@@ -45,18 +45,13 @@ export const pasanakuAbi = [
 				indexed: false,
 			},
 			{
-				name: "player_count",
+				name: "token_id",
 				type: "uint256",
-				indexed: false,
+				indexed: true,
 			},
 			{
 				name: "creator",
 				type: "address",
-				indexed: true,
-			},
-			{
-				name: "token_id",
-				type: "uint256",
 				indexed: true,
 			},
 			{
@@ -72,7 +67,7 @@ export const pasanakuAbi = [
 		name: "Deposited",
 		inputs: [
 			{
-				name: "player",
+				name: "participant",
 				type: "address",
 				indexed: true,
 			},
@@ -104,7 +99,7 @@ export const pasanakuAbi = [
 		name: "Claimed",
 		inputs: [
 			{
-				name: "player",
+				name: "participant",
 				type: "address",
 				indexed: true,
 			},
@@ -153,7 +148,7 @@ export const pasanakuAbi = [
 		name: "Recovered",
 		inputs: [
 			{
-				name: "player",
+				name: "participant",
 				type: "address",
 				indexed: true,
 			},
@@ -694,7 +689,7 @@ export const pasanakuAbi = [
 				type: "address",
 			},
 			{
-				name: "players",
+				name: "participants",
 				type: "address[]",
 			},
 			{
@@ -761,6 +756,13 @@ export const pasanakuAbi = [
 		],
 	},
 	{
+		stateMutability: "nonpayable",
+		type: "function",
+		name: "collect_protocol_fees",
+		inputs: [],
+		outputs: [],
+	},
+	{
 		stateMutability: "view",
 		type: "function",
 		name: "rotating_savings",
@@ -776,7 +778,7 @@ export const pasanakuAbi = [
 				type: "tuple",
 				components: [
 					{
-						name: "players",
+						name: "participants",
 						type: "address[]",
 					},
 					{
@@ -788,16 +790,8 @@ export const pasanakuAbi = [
 						type: "uint256",
 					},
 					{
-						name: "player_count",
-						type: "uint256",
-					},
-					{
 						name: "current_index",
 						type: "uint256",
-					},
-					{
-						name: "creator",
-						type: "address",
 					},
 					{
 						name: "total_deposited",
@@ -810,6 +804,14 @@ export const pasanakuAbi = [
 					{
 						name: "ended",
 						type: "bool",
+					},
+					{
+						name: "recovered",
+						type: "bool",
+					},
+					{
+						name: "creator",
+						type: "address",
 					},
 					{
 						name: "created_at",
@@ -843,41 +845,28 @@ export const pasanakuAbi = [
 	{
 		stateMutability: "view",
 		type: "function",
-		name: "can_be_recovered",
+		name: "expected_total_deposited",
 		inputs: [
 			{
 				name: "token_id",
 				type: "uint256",
 			},
+			{
+				name: "participant",
+				type: "address",
+			},
 		],
 		outputs: [
 			{
 				name: "",
-				type: "bool",
+				type: "uint256",
 			},
 		],
 	},
 	{
 		stateMutability: "view",
 		type: "function",
-		name: "can_be_claimed",
-		inputs: [
-			{
-				name: "token_id",
-				type: "uint256",
-			},
-		],
-		outputs: [
-			{
-				name: "",
-				type: "bool",
-			},
-		],
-	},
-	{
-		stateMutability: "view",
-		type: "function",
-		name: "current_player",
+		name: "beneficiary",
 		inputs: [
 			{
 				name: "token_id",
@@ -894,7 +883,70 @@ export const pasanakuAbi = [
 	{
 		stateMutability: "view",
 		type: "function",
-		name: "player_count",
+		name: "can_claim",
+		inputs: [
+			{
+				name: "participant",
+				type: "address",
+			},
+			{
+				name: "token_id",
+				type: "uint256",
+			},
+		],
+		outputs: [
+			{
+				name: "",
+				type: "bool",
+			},
+		],
+	},
+	{
+		stateMutability: "view",
+		type: "function",
+		name: "can_deposit",
+		inputs: [
+			{
+				name: "participant",
+				type: "address",
+			},
+			{
+				name: "token_id",
+				type: "uint256",
+			},
+		],
+		outputs: [
+			{
+				name: "",
+				type: "bool",
+			},
+		],
+	},
+	{
+		stateMutability: "view",
+		type: "function",
+		name: "can_recover",
+		inputs: [
+			{
+				name: "participant",
+				type: "address",
+			},
+			{
+				name: "token_id",
+				type: "uint256",
+			},
+		],
+		outputs: [
+			{
+				name: "",
+				type: "bool",
+			},
+		],
+	},
+	{
+		stateMutability: "view",
+		type: "function",
+		name: "participants_count",
 		inputs: [
 			{
 				name: "token_id",
@@ -928,7 +980,7 @@ export const pasanakuAbi = [
 		outputs: [
 			{
 				name: "",
-				type: "address[5]",
+				type: "address[3]",
 			},
 		],
 	},
@@ -937,25 +989,37 @@ export const pasanakuAbi = [
 		type: "function",
 		name: "has_deposited",
 		inputs: [
-			{ name: "account", type: "address" },
-			{ name: "token_id", type: "uint256" },
-			{ name: "index", type: "uint256" },
+			{
+				name: "account",
+				type: "address",
+			},
+			{
+				name: "token_id",
+				type: "uint256",
+			},
+			{
+				name: "index",
+				type: "uint256",
+			},
 		],
-		outputs: [{ name: "", type: "bool" }],
-	},
-	{
-		stateMutability: "view",
-		type: "function",
-		name: "can_current_recipient_claim",
-		inputs: [{ name: "token_id", type: "uint256" }],
-		outputs: [{ name: "", type: "bool" }],
+		outputs: [
+			{
+				name: "",
+				type: "bool",
+			},
+		],
 	},
 	{
 		stateMutability: "view",
 		type: "function",
 		name: "next_token_id",
 		inputs: [],
-		outputs: [{ name: "", type: "uint256" }],
+		outputs: [
+			{
+				name: "",
+				type: "uint256",
+			},
+		],
 	},
 	{
 		stateMutability: "payable",
@@ -967,7 +1031,7 @@ export const pasanakuAbi = [
 			},
 			{
 				name: "supported_assets",
-				type: "address[5]",
+				type: "address[3]",
 			},
 		],
 		outputs: [],
