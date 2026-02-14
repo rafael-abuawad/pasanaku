@@ -48,7 +48,7 @@ export function OngoingGameCard({ tokenId, rs }: OngoingGameCardProps) {
 					{/* Dynamic token image from API */}
 					<div className="relative w-full aspect-[315/600] bg-muted shrink-0">
 						<img
-							src={`/api/token/${tokenId}/image`}
+							src={`/api/v1/token/${tokenId}/image`}
 							alt={`Pasanaku game #${String(tokenId)}`}
 							className="w-full h-full object-cover object-center"
 							width={315}

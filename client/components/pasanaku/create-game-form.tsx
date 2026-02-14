@@ -26,7 +26,12 @@ import {
 } from "@/lib/supported-assets";
 import { useAppForm } from "@/hooks/use-app-form";
 import { type Address, parseUnits } from "viem";
-import { useConnection, useReadContract, useWriteContract } from "wagmi";
+import {
+	useConnection,
+	useReadContract,
+	useWaitForTransactionReceipt,
+	useWriteContract,
+} from "wagmi";
 import { PASANAKU_ADDRESS } from "@/lib/contract";
 import { pasanakuAbi } from "@/lib/abi";
 import { TokenBalance } from "./token-balance";
@@ -157,16 +162,30 @@ export function CreateGameForm() {
 		setConfirmModalOpen(false);
 	}
 
-	useEffect(() => {
-		if (writeContract.status === "success") {
-			form.reset();
-		}
-	}, [writeContract.status, form]);
-
 	const txHash =
 		writeContract.status === "pending" || writeContract.status === "success"
-			? (writeContract as { data?: string }).data
+			? (writeContract as { data?: `0x${string}` }).data
 			: undefined;
+
+	const {
+		data: receipt,
+		isLoading: isWaitingReceipt,
+		error: receiptError,
+	} = useWaitForTransactionReceipt({ hash: txHash });
+
+	useEffect(() => {
+		if (receipt !== undefined) {
+			form.reset();
+		}
+	}, [receipt, form]);
+
+	const isPending =
+		writeContract.isPending || (txHash !== undefined && isWaitingReceipt);
+	const isConfirmed = receipt !== undefined;
+	const errorMessage =
+		writeContract.error?.message ?? receiptError?.message ?? undefined;
+	const showError =
+		(writeContract.status === "error" || receiptError) && errorMessage;
 
 	const confirmPlayers = form.state.values.players
 		? (form.state.values.players as string)
@@ -321,16 +340,16 @@ export function CreateGameForm() {
 					/>
 				</FieldGroup>
 
-				{writeContract.status === "error" && (
+				{showError && (
 					<Alert variant="destructive" className="mt-4">
 						<InfoIcon />
 						<AlertTitle>Error</AlertTitle>
 						<AlertDescription className="text-wrap">
-							{writeContract.error?.message}
+							{errorMessage}
 						</AlertDescription>
 					</Alert>
 				)}
-				{writeContract.status === "pending" && (
+				{isPending && (
 					<Item variant="muted" className="mt-4">
 						<ItemMedia>
 							<Spinner />
@@ -359,7 +378,7 @@ export function CreateGameForm() {
 						)}
 					</Item>
 				)}
-				{writeContract.status === "success" && (
+				{isConfirmed && (
 					<Item variant="muted" className="mt-4">
 						<ItemMedia variant="icon">
 							<CheckIcon />
@@ -419,12 +438,12 @@ export function CreateGameForm() {
 												isSubmitting ||
 												protocolFee === undefined ||
 												isProtocolFeePending ||
-												writeContract.isPending
+												isPending
 											}
 											className="grow md:grow-0"
 											onClick={openConfirmModal}
 										>
-											{isSubmitting || writeContract.isPending
+											{isSubmitting || isPending
 												? "Creating..."
 												: "Create game"}
 										</Button>
@@ -486,9 +505,9 @@ export function CreateGameForm() {
 					<Button
 						type="button"
 						onClick={handleConfirmCreate}
-						disabled={writeContract.isPending}
+						disabled={isPending}
 					>
-						{writeContract.isPending ? "Creating…" : "Confirm"}
+						{isPending ? "Creating…" : "Confirm"}
 					</Button>
 				</div>
 			</ResponsiveActionModal>

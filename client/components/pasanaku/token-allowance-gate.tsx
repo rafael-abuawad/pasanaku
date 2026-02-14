@@ -1,12 +1,17 @@
 "use client";
 
+import { useState, useCallback, useEffect } from "react";
 import { type Address, erc20Abi, maxUint256 } from "viem";
-import { useConnection, useReadContract, useWriteContract } from "wagmi";
+import {
+	useConnection,
+	useReadContract,
+	useWaitForTransactionReceipt,
+	useWriteContract,
+} from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { PASANAKU_ADDRESS } from "@/lib/contract";
 import { getSymbol } from "@/lib/supported-assets";
-import { useCallback } from "react";
 import { ConnectKitButton } from "connectkit";
 
 const addressRegex = /^0x[a-fA-F0-9]{40}$/;
@@ -36,7 +41,23 @@ export function TokenAllowanceGate({
 	});
 
 	const writeContract = useWriteContract();
-	const isApproving = writeContract.isPending;
+	const [pendingApprovalHash, setPendingApprovalHash] = useState<
+		`0x${string}` | undefined
+	>(undefined);
+
+	const { data: receipt, isLoading: isWaitingReceipt } =
+		useWaitForTransactionReceipt({ hash: pendingApprovalHash });
+
+	useEffect(() => {
+		if (receipt === undefined) return;
+		refetch().then(() => {
+			setPendingApprovalHash(undefined);
+		});
+	}, [receipt, refetch]);
+
+	const isApproving =
+		writeContract.isPending ||
+		(pendingApprovalHash !== undefined && isWaitingReceipt);
 
 	const hasAllowance = allowance !== undefined && allowance > BigInt(0);
 
@@ -44,14 +65,19 @@ export function TokenAllowanceGate({
 		if (!tokenAddress) {
 			return;
 		}
-
-		await writeContract.mutateAsync({
-			address: tokenAddress,
-			abi: erc20Abi,
-			functionName: "approve",
-			args: [PASANAKU_ADDRESS, maxUint256],
-		});
-		await refetch();
+		try {
+			const hash = await writeContract.mutateAsync({
+				address: tokenAddress,
+				abi: erc20Abi,
+				functionName: "approve",
+				args: [PASANAKU_ADDRESS, maxUint256],
+			});
+			if (hash) {
+				setPendingApprovalHash(hash);
+			}
+		} catch (err) {
+			console.debug("[TokenAllowanceGate] Approve failed", err);
+		}
 	}, [tokenAddress, writeContract]);
 
 	if (!isConnected) {
@@ -102,7 +128,7 @@ export function TokenAllowanceGate({
 				{isApproving ? (
 					<>
 						<Spinner className="size-4" />
-						Approving…
+						{writeContract.isPending ? "Approving…" : "Confirming…"}
 					</>
 				) : (
 					`Approve ${symbol} for game`

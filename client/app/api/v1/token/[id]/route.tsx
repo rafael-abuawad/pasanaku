@@ -78,7 +78,7 @@ export async function GET(
 
 		const url = new URL(request.url);
 		const origin = url.origin;
-		const imageUrl = `${origin}/api/token/${id}/image`;
+		const imageUrl = `${origin}/api/v1/token/${id}/image`;
 
 		const name = `Pasanaku #${String(rs.token_id)}`;
 		const description = [

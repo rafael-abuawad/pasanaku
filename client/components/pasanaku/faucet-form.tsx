@@ -3,7 +3,11 @@
 import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
-import { useConnection, useWriteContract } from "wagmi";
+import {
+	useConnection,
+	useWaitForTransactionReceipt,
+	useWriteContract,
+} from "wagmi";
 import { Button } from "@/components/ui/button";
 import {
 	Field,
@@ -106,12 +110,31 @@ export function FaucetForm({ onSuccess }: FaucetFormProps) {
 		},
 	});
 
+	const txHash =
+		writeContract.status === "pending" || writeContract.status === "success"
+			? (writeContract as { data?: `0x${string}` }).data
+			: undefined;
+
+	const {
+		data: receipt,
+		isLoading: isWaitingReceipt,
+		error: receiptError,
+	} = useWaitForTransactionReceipt({ hash: txHash });
+
 	useEffect(() => {
-		if (writeContract.status === "success") {
+		if (receipt !== undefined) {
 			form.reset();
 			onSuccess?.();
 		}
-	}, [writeContract.status, form, onSuccess]);
+	}, [receipt, form, onSuccess]);
+
+	const isPending =
+		writeContract.isPending || (txHash !== undefined && isWaitingReceipt);
+	const isConfirmed = receipt !== undefined;
+	const errorMessage =
+		writeContract.error?.message ?? receiptError?.message ?? undefined;
+	const showError =
+		(writeContract.status === "error" || receiptError) && errorMessage;
 
 	return (
 		<form
@@ -247,16 +270,16 @@ export function FaucetForm({ onSuccess }: FaucetFormProps) {
 					}}
 				/>
 			</FieldGroup>
-			{writeContract.status === "error" && (
+			{showError && (
 				<Alert variant="destructive">
 					<InfoIcon />
 					<AlertTitle>Error</AlertTitle>
 					<AlertDescription className="text-wrap">
-						{writeContract.error.message}
+						{errorMessage}
 					</AlertDescription>
 				</Alert>
 			)}
-			{writeContract.status === "pending" && (
+			{isPending && (
 				<Item variant="muted">
 					<ItemMedia>
 						<Spinner />
@@ -266,24 +289,26 @@ export function FaucetForm({ onSuccess }: FaucetFormProps) {
 							Processing transaction...
 						</ItemTitle>
 					</ItemContent>
-					<ItemContent className="flex-none justify-end">
-						<Link
-							href={`https://arbiscan.io/tx/${writeContract.data}`}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							<Button
-								variant="outline"
-								className="text-muted-foreground hover:text-primary"
-								size="sm"
+					{txHash && (
+						<ItemContent className="flex-none justify-end">
+							<Link
+								href={`https://arbiscan.io/tx/${txHash}`}
+								target="_blank"
+								rel="noopener noreferrer"
 							>
-								Arbiscan link
-							</Button>
-						</Link>
-					</ItemContent>
+								<Button
+									variant="outline"
+									className="text-muted-foreground hover:text-primary"
+									size="sm"
+								>
+									Arbiscan link
+								</Button>
+							</Link>
+						</ItemContent>
+					)}
 				</Item>
 			)}
-			{writeContract.status === "success" && (
+			{isConfirmed && txHash && (
 				<Item variant="muted">
 					<ItemMedia variant="icon">
 						<CheckIcon />
@@ -295,7 +320,7 @@ export function FaucetForm({ onSuccess }: FaucetFormProps) {
 						</ItemDescription>
 						<ItemActions>
 							<Link
-								href={`https://arbiscan.io/tx/${writeContract.data}`}
+								href={`https://arbiscan.io/tx/${txHash}`}
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -318,12 +343,7 @@ export function FaucetForm({ onSuccess }: FaucetFormProps) {
 						<Button
 							type="submit"
 							form="faucet-form"
-							disabled={
-								!canSubmit ||
-								isSubmitting ||
-								(writeContract.status !== "idle" &&
-									writeContract.status !== "success")
-							}
+							disabled={!canSubmit || isSubmitting || isPending}
 						>
 							{isSubmitting ? "Minting…" : "Mint"}
 						</Button>
