@@ -118,9 +118,13 @@ MAX_PARTICIPANTS_COUNT: constant(uint256) = 12
 DAYS_30: constant(uint256) = 60 * 60 * 24 * 30
 
 
+# @dev The number of supported assets.
+SUPPORTED_ASSETS_COUNT: constant(uint256) = 9
+
+
 # @dev The supported assets are the assets that can be used
 # to create a rotating savings game.
-SUPPORTED_ASSETS: immutable(address[3])
+SUPPORTED_ASSETS: immutable(address[SUPPORTED_ASSETS_COUNT])
 
 
 # @dev The `RotatingSavings` struct is used to store the
@@ -159,7 +163,7 @@ _counter: uint256
 
 @deploy
 @payable
-def __init__(base_uri_: String[80], supported_assets: address[3]):
+def __init__(base_uri_: String[80], supported_assets: address[SUPPORTED_ASSETS_COUNT]):
     """
     @dev To omit the opcodes for checking the `msg.value`
          in the creation-time EVM bytecode, the constructor
@@ -466,7 +470,7 @@ def protocol_fee() -> uint256:
 
 @external
 @view
-def supported_assets() -> address[3]:
+def supported_assets() -> address[SUPPORTED_ASSETS_COUNT]:
     """
     @dev Returns the supported assets.
     @return The supported assets.

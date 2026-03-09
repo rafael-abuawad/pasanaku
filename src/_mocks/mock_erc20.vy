@@ -11,14 +11,12 @@
 # @dev We import and implement the `IERC20` interface,
 # which is a built-in interface of the Vyper compiler.
 from ethereum.ercs import IERC20
-
 implements: IERC20
 
 
 # @dev We import and implement the `IERC20Detailed` interface,
 # which is a built-in interface of the Vyper compiler.
 from ethereum.ercs import IERC20Detailed
-
 implements: IERC20Detailed
 
 
@@ -26,26 +24,22 @@ implements: IERC20Detailed
 # interface, which is written using standard Vyper
 # syntax.
 from snekmate.tokens.interfaces import IERC20Permit
-
 implements: IERC20Permit
 
 
 # @dev We import and implement the `IERC5267` interface,
 # which is written using standard Vyper syntax.
 from snekmate.utils.interfaces import IERC5267
-
 implements: IERC5267
 
 
 # @dev We import and initialise the `ownable` module.
 from snekmate.auth import ownable as ow
-
 initializes: ow
 
 
 # @dev We import and initialise the `erc20` module.
 from snekmate.tokens import erc20
-
 initializes: erc20[ownable := ow]
 
 
