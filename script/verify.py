@@ -14,4 +14,3 @@ def verify():
 
 def moccasin_main():
     verify()
-
